@@ -1,0 +1,263 @@
+/* ==========================
+   ESTILOS GENERALES
+========================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #eef2f7, #dbeafe);
+    color: #2d3748;
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+
+/* ==========================
+   CONTENEDOR PRINCIPAL
+========================== */
+
+.app-container {
+    max-width: 850px;
+    margin: auto;
+    background: #fff;
+    padding: 40px;
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .08);
+    border-top: 6px solid #2563eb;
+}
+
+/* ==========================
+   ENCABEZADO
+========================== */
+
+header {
+    text-align: center;
+    margin-bottom: 35px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+header h1 {
+    color: #1e3a8a;
+    font-size: 34px;
+    margin-bottom: 10px;
+}
+
+header p {
+    color: #64748b;
+    font-size: 16px;
+}
+
+/* ==========================
+   INPUT
+========================== */
+
+.task-input-container {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.task-input {
+    flex: 1;
+    padding: 14px;
+    font-size: 16px;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
+    transition: .3s;
+}
+
+.task-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 10px rgba(37, 99, 235, .2);
+}
+
+/* ==========================
+   BOTÓN AGREGAR
+========================== */
+
+.add-button {
+    width: 140px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.add-button:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-2px);
+}
+
+/* ==========================
+   LISTA
+========================== */
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+/* ==========================
+   TARJETA DE TAREA
+========================== */
+
+.task {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    background: #ffffff;
+    padding: 18px 20px;
+    margin-bottom: 15px;
+
+    border-left: 5px solid #14b8a6;
+    border-radius: 12px;
+
+    box-shadow: 0 5px 15px rgba(0,0,0,.05);
+
+    transition: .3s;
+}
+
+.task:hover {
+    transform: translateY(-2px);
+    background: #f8fafc;
+    box-shadow: 0 10px 20px rgba(20,184,166,.15);
+}
+
+/* ==========================
+   CHECKBOX
+========================== */
+
+.task input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: #2563eb;
+    flex-shrink: 0;
+}
+
+/* ==========================
+   TEXTO
+========================== */
+
+.task span {
+    flex: 1;
+    font-size: 17px;
+    color: #334155;
+    word-break: break-word;
+}
+
+/* ==========================
+   BOTÓN ELIMINAR
+========================== */
+
+.task button {
+    padding: 10px 18px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: .3s;
+}
+
+.task button:hover {
+    background: #dc2626;
+}
+
+/* ==========================
+   TAREA COMPLETADA
+========================== */
+
+.task.completed {
+    background: #f0fdf4;
+    border-left-color: #22c55e;
+}
+
+.task.completed span {
+    text-decoration: line-through;
+    color: #64748b;
+}
+
+/* ==========================
+   ESTADÍSTICAS
+========================== */
+
+.stats {
+    margin-top: 35px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.stats h3 {
+    margin-bottom: 15px;
+    color: #1e3a8a;
+}
+
+.stats p {
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+/* ==========================
+   SCROLL
+========================== */
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2563eb;
+    border-radius: 20px;
+}
+
+::-webkit-scrollbar-track {
+    background: #e5e7eb;
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+@media (max-width: 768px) {
+
+    .app-container {
+        padding: 25px;
+    }
+
+    .task-input-container {
+        flex-direction: column;
+    }
+
+    .task-input,
+    .add-button {
+        width: 100%;
+    }
+
+    .task {
+        flex-wrap: wrap;
+    }
+
+    .task span {
+        width: 100%;
+        margin: 8px 0;
+    }
+
+    .task button {
+        width: 100%;
+    }
+}
