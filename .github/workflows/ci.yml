@@ -1,6 +1,5 @@
 name: CI
 
-
 on:
   push:
     branches: [main]
@@ -10,7 +9,6 @@ on:
 
 
 jobs:
-
 
   frontend:
 
@@ -22,12 +20,12 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
 
       - name: Setup Node
 
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
 
         with:
           node-version: '20'
@@ -43,6 +41,7 @@ jobs:
       - name: Test
 
         run: npm test
+        continue-on-error: false
 
 
       - name: Lint
@@ -53,8 +52,6 @@ jobs:
       - name: Build
 
         run: npm run build
-
-
 
 
 
@@ -80,14 +77,14 @@ jobs:
 
       - name: Checkout
 
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
 
 
       - name: Setup Node
 
 
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
 
 
         with:
@@ -109,6 +106,7 @@ jobs:
 
 
         run: npm test
+        continue-on-error: false
 
 
 
