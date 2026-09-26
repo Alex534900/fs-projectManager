@@ -1,13 +1,15 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (_req: any, res: any) => {
-  res.send("Backend is working!");
+
+app.get("/", (_req, res) => {
+    res.send("Backend is working!");
 });
 
-module.exports = app;
+
+export default app;

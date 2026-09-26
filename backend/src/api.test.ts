@@ -1,13 +1,18 @@
-/// <reference types="vitest/globals" />
+import { describe, it, expect } from "vitest";
+import request from "supertest";
+import app from "./app";
 
-const request = require("supertest");
-const app = require("./app.ts");
 
 describe("API Backend", () => {
+
   it("responde correctamente en GET /", async () => {
-    const response = await request(app).get("/");
+
+    const response = await request(app)
+      .get("/");
 
     expect(response.status).toBe(200);
     expect(response.text).toBe("Backend is working!");
+
   });
+
 });
