@@ -308,9 +308,9 @@ jobs:
       - name: Deploy Railway Staging - Frontend
         run: railway up --service fs-projectManager --ci
 
-      - name: Deploy Railway Staging - Backend
-        working-directory: ./backend
-        run: railway up --service ravishing-amazement --ci
+      # El backend (ravishing-amazement) esta conectado directamente
+      # al repo de GitHub en Railway, por lo que se redespliega solo
+      # en cada push a main. No necesita (ni acepta) subida por CLI.
 
 
 
@@ -352,6 +352,6 @@ jobs:
       - name: Deploy Railway Production - Frontend
         run: railway up --service fs-projectManager --ci
 
-      - name: Deploy Railway Production - Backend
-        working-directory: ./backend
-        run: railway up --service ravishing-amazement --ci
+      # El backend (ravishing-amazement) esta conectado directamente
+      # al repo de GitHub en Railway, por lo que se redespliega solo
+      # en cada push a main. No necesita (ni acepta) subida por CLI.
