@@ -51,6 +51,12 @@ jobs:
     name: Backend - Test, Lint & Build
     runs-on: ubuntu-latest
 
+    # SECRETOS DEL REPOSITORIO
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      PORT: 3000
+
     defaults:
       run:
         working-directory: ./backend
@@ -134,16 +140,20 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
-
     env:
+      # Esta base es TEMPORAL del pipeline.
+      # No necesita GitHub Secret.
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/taskmanager
 
+      # JWT sí lo obtenemos de GitHub Secrets.
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+      PORT: 3000
 
     steps:
 
       - name: Checkout
         uses: actions/checkout@v5
-
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -176,7 +186,6 @@ jobs:
         working-directory: ./backend
         run: npx prisma generate
 
-
       - name: Create database schema
         working-directory: ./backend
         run: npx prisma db push
@@ -188,7 +197,6 @@ jobs:
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-
 
       - name: Run E2E tests
         run: npx playwright test
