@@ -1,156 +1,287 @@
 const express = require("express");
 const cors = require("cors");
 
-// JWT: We import jsonwebtoken to create and verify tokens.
+// JWT
 const jwt = require("jsonwebtoken");
 
-// PRISMA CHANGE: Import Prisma Client
+// Prisma
 const { PrismaClient } = require("@prisma/client");
+
 const app = express();
 const PORT = 3000;
-// PRISMA CHANGE: Create the connection to PostgreSQL through Prisma
+
 const prisma = new PrismaClient();
-app.use(express.json());
 
 app.use(cors());
 app.use(express.json());
+
 
 type Task = {
     id: number;
     text: string;
     completed: boolean;
 };
-// This array is still here because POST, PUT, and DELETE are not connected to Prismayet.
-// PRISMA CHANGE: GET /tasks will no longer use this array.
-let tasks: Task[] = [
+
+
+// Este arreglo todavía se mantiene porque PUT aún no usa Prisma.
+// Después conectaremos también el checkbox a PostgreSQL.
+const tasks: Task[] = [
     { id: 1, text: "Estudiar Node.js", completed: false },
     { id: 2, text: "Crear servidor Express", completed: true },
     { id: 3, text: "Probar rutas del backend", completed: false }
 ];
-app.get("/", (req: any, res: any) => {
+
+
+// ======================================================
+// GET /
+// ======================================================
+
+app.get("/", (_req: any, res: any) => {
     res.send("Backend is working!");
 });
-// PRISMA CHANGE: GET /tasks now reads from PostgreSQL instead of the array
-app.get("/tasks", async (req: any, res: any) => {
-    const tasksFromDatabase = await prisma.task.findMany();
-    res.json(tasksFromDatabase);
+
+
+// ======================================================
+// GET /tasks
+// Lee las tareas desde PostgreSQL
+// ======================================================
+
+app.get("/tasks", async (_req: any, res: any) => {
+    try {
+        const tasksFromDatabase = await prisma.task.findMany();
+
+        res.json(tasksFromDatabase);
+
+    } catch (error) {
+        console.error("Error getting tasks:", error);
+
+        res.status(500).json({
+            message: "Error getting tasks"
+        });
+    }
 });
 
 
+// ======================================================
+// LOGIN
+// ======================================================
 
-/*app.post("/tasks", (req: any, res: any) => {
-    const { text } = req.body || {};
-    if (!text || text.trim() === "") {
-        return res.status(400).json({ message: "Task text is required" });
-    }
-    const newTask: Task = { id: Date.now(), text: text, completed: false };
-    tasks.push(newTask);
-    res.status(201).json(newTask);
-});*/
-
-// JWT: This is a basic login route.
-// JWT: For now, we are using fixed credentials only for practice.
 app.post("/login", (req: any, res: any) => {
+
     const { email, password } = req.body || {};
-    if (email === "admin@test.com" && password === "123456") {
-        // JWT: If the credentials are correct, we create a token.
+
+    if (
+        email === "admin@test.com" &&
+        password === "123456"
+    ) {
+
         const token = jwt.sign(
-            // JWT: This is the information stored inside the token.
-            { email: email },
-            // JWT: This secret is used to sign the token.
+            {
+                email: email
+            },
             "secret_key",
-            // JWT: The token will expire in 1 hour.
-            { expiresIn: "1h" }
+            {
+                expiresIn: "1h"
+            }
         );
+
         return res.json({
             message: "Login successful",
             token: token
         });
     }
-    res.status(401).json({
+
+    return res.status(401).json({
         message: "Invalid credentials"
     });
 });
 
 
-// NEW JWT CHANGE: This is a protected route.
-// NEW JWT CHANGE: The user must send a valid token to access this route.
+// ======================================================
+// PROFILE PROTEGIDO CON JWT
+// ======================================================
+
 app.get("/profile", (req: any, res: any) => {
-    // NEW JWT CHANGE: The token is expected in the Authorization header.
+
     const authHeader = req.headers.authorization;
+
     if (!authHeader) {
         return res.status(401).json({
             message: "No token provided"
         });
     }
-    // NEW JWT CHANGE: The header usually looks like "Bearer token_here".
-    // NEW JWT CHANGE: We split it and take only the token part.
+
+
     const token = authHeader.split(" ")[1];
+
+
     try {
-        // NEW JWT CHANGE: jwt.verify checks if the token is valid.
-        const decoded = jwt.verify(token, "secret_key");
-        res.json({
+
+        const decoded = jwt.verify(
+            token,
+            "secret_key"
+        );
+
+        return res.json({
             message: "Protected profile data",
             user: decoded
         });
-    } catch (error) {
-        res.status(401).json({
+
+    } catch {
+
+        return res.status(401).json({
             message: "Invalid token"
         });
     }
 });
 
 
-// NEW CHANGE: POST /tasks now saves the new task in PostgreSQL using Prisma.
+// ======================================================
+// POST /tasks
+// Crea una tarea en PostgreSQL
+// ======================================================
+
 app.post("/tasks", async (req: any, res: any) => {
+
     const { text } = req.body || {};
+
+
     if (!text || text.trim() === "") {
+
         return res.status(400).json({
             message: "Task text is required"
         });
+
     }
-    const newTask = await prisma.task.create({
-        data: {
-            text: text,
-            completed: false
-        }
-    });
-    res.status(201).json(newTask);
+
+
+    try {
+
+        const newTask = await prisma.task.create({
+
+            data: {
+                text: text.trim(),
+                completed: false
+            }
+
+        });
+
+
+        return res.status(201).json(newTask);
+
+    } catch (error) {
+
+        console.error(
+            "Error creating task:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Error creating task"
+        });
+    }
 });
 
 
-
+// ======================================================
+// PUT /tasks/:id
+// POR AHORA sigue usando el arreglo temporal.
+// Después lo conectaremos a Prisma.
+// ======================================================
 
 app.put("/tasks/:id", (req: any, res: any) => {
+
     const id = Number(req.params.id);
-    const task = tasks.find((task) => task.id === id);
+
+
+    const task = tasks.find(
+        (task) => task.id === id
+    );
+
+
     if (!task) {
-        return res.status(404).json({ message: "Task not found" });
-    }
-    task.completed = !task.completed;
-    res.json(task);
-});
-app.delete("/tasks/:id", (req: any, res: any) => {
-    const id = Number(req.params.id);
 
-    const taskExists = tasks.some(task => task.id === id);
-
-    if (!taskExists) {
         return res.status(404).json({
             message: "Task not found"
         });
+
     }
 
-    const updatedTasks = tasks.filter(task => task.id !== id);
 
-    tasks.length = 0;
-    tasks.push(...updatedTasks);
+    task.completed = !task.completed;
 
-    res.status(200).json({
-        message: "Task deleted successfully",
-        tasks
-    });
+
+    return res.json(task);
 });
+
+
+// ======================================================
+// DELETE /tasks/:id
+// AHORA elimina realmente de PostgreSQL con Prisma
+// ======================================================
+
+app.delete("/tasks/:id", async (req: any, res: any) => {
+
+    const id = Number(req.params.id);
+
+
+    if (Number.isNaN(id)) {
+
+        return res.status(400).json({
+            message: "Invalid task id"
+        });
+
+    }
+
+
+    try {
+
+        const result = await prisma.task.deleteMany({
+
+            where: {
+                id: id
+            }
+
+        });
+
+
+        if (result.count === 0) {
+
+            return res.status(404).json({
+                message: "Task not found"
+            });
+
+        }
+
+
+        return res.status(200).json({
+            message: "Task deleted successfully"
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "Error deleting task:",
+            error
+        );
+
+
+        return res.status(500).json({
+            message: "Error deleting task"
+        });
+    }
+});
+
+
+// ======================================================
+// START SERVER
+// ======================================================
+
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+
+    console.log(
+        `Server running on port ${PORT}`
+    );
+
 });
