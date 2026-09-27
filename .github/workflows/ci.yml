@@ -1,7 +1,6 @@
 name: CI
 
 on:
-
   push:
     branches: [main]
 
@@ -11,51 +10,36 @@ on:
 
 jobs:
 
-
   # =====================================================
   # 1. FRONTEND - TEST, LINT Y BUILD
   # =====================================================
 
   frontend:
-
     name: Frontend - Test, Lint & Build
-
     runs-on: ubuntu-latest
 
-
     steps:
-
       - name: Checkout
         uses: actions/checkout@v5
 
-
       - name: Setup Node
         uses: actions/setup-node@v5
-
         with:
-
           node-version: '20'
-
           cache: 'npm'
-
           cache-dependency-path: package-lock.json
-
 
       - name: Install dependencies
         run: npm ci
 
-
       - name: Test
         run: npm test
-
 
       - name: Lint
         run: npm run lint
 
-
       - name: Build
         run: npm run build
-
 
 
   # =====================================================
@@ -63,62 +47,40 @@ jobs:
   # =====================================================
 
   backend:
-
     name: Backend - Test, Lint & Build
-
     runs-on: ubuntu-latest
 
-
     env:
-
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
-
       PORT: 3000
 
-
     defaults:
-
       run:
-
         working-directory: ./backend
 
-
     steps:
-
-
       - name: Checkout
         uses: actions/checkout@v5
 
-
       - name: Setup Node
         uses: actions/setup-node@v5
-
         with:
-
           node-version: '20'
-
           cache: 'npm'
-
           cache-dependency-path: backend/package-lock.json
-
 
       - name: Install dependencies
         run: npm ci
 
-
       - name: Test
         run: npm test
-
 
       - name: Lint
         run: npm run lint
 
-
       - name: Build
         run: npm run build
-
 
 
   # =====================================================
@@ -126,38 +88,25 @@ jobs:
   # =====================================================
 
   coverage:
-
     name: Pruebas unitarias y cobertura
-
     runs-on: ubuntu-latest
 
-
     steps:
-
-
       - name: Checkout
         uses: actions/checkout@v5
 
-
       - name: Setup Node
         uses: actions/setup-node@v5
-
         with:
-
           node-version: '20'
-
           cache: 'npm'
-
           cache-dependency-path: package-lock.json
-
 
       - name: Install dependencies
         run: npm ci
 
-
       - name: Run coverage
         run: npx vitest run --coverage
-
 
 
   # =====================================================
@@ -222,97 +171,59 @@ jobs:
       - name: Run E2E tests
         run: npx playwright test
 
+
   # =====================================================
   # 5. MIGRACIONES PRISMA EN PIPELINE
   # =====================================================
 
   migraciones:
-
     name: Migraciones Prisma
-
     runs-on: ubuntu-latest
 
-
     services:
-
-
       postgres:
-
-        image: postgres:15
-
+        image: postgres:16
 
         env:
-
           POSTGRES_USER: testuser
-
           POSTGRES_PASSWORD: testpass
-
           POSTGRES_DB: testdb
 
-
         ports:
-
           - 5432:5432
-
 
         options: >-
           --health-cmd="pg_isready -U testuser -d testdb"
-          --health-interval=10s
+          --health-interval=5s
           --health-timeout=5s
-          --health-retries=10
-          --health-start-period=30s
-
+          --health-retries=5
 
     env:
-
       DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
 
-
-
     defaults:
-
       run:
-
         working-directory: ./backend
 
-
-
     steps:
-
-
       - name: Checkout
-
         uses: actions/checkout@v5
 
-
       - name: Setup Node
-
         uses: actions/setup-node@v5
-
         with:
-
           node-version: '20'
-
           cache: 'npm'
-
           cache-dependency-path: backend/package-lock.json
 
-
       - name: Install dependencies
-
         run: npm ci
 
-
       - name: Generate Prisma Client
-
         run: npx prisma generate
 
-
       - name: Apply Prisma migrations
-
         run: npx prisma migrate deploy
-
-
 
 
   # =====================================================
@@ -320,57 +231,30 @@ jobs:
   # =====================================================
 
   deploy-staging:
-
-
     name: Deploy Staging Railway
-
-
     runs-on: ubuntu-latest
 
-
-
     needs:
-
-
       - frontend
-
       - backend
-
       - coverage
-
       - e2e
-
       - migraciones
-
-
 
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
-
+    env:
+      RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
 
     steps:
-
-
       - name: Checkout
-
         uses: actions/checkout@v5
 
-
       - name: Install Railway CLI
-
         run: npm install -g @railway/cli
 
-
-      - name: Login Railway
-
-        run: railway login --token ${{ secrets.RAILWAY_TOKEN }}
-
-
       - name: Link Railway project
-
         run: railway link --project fd9370a3-392f-4a96-81e0-2ed7afae6a0f --environment production
 
-
       - name: Deploy Railway
-
-        run: railway up --service fs-projectManager
+        run: railway up --service fs-projectManager --ci
