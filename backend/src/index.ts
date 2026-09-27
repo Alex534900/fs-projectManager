@@ -18,7 +18,16 @@ const PORT = Number(process.env.PORT) || 3000;
 // JWT_SECRET viene desde Railway / .env
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const prisma = new PrismaClient();
+// ======================================================
+// FALLO SIMULADO
+// ======================================================
+const prisma = new PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.DATABASE_URLL
+        }
+    }
+});
 
 app.use(cors());
 app.use(express.json());
