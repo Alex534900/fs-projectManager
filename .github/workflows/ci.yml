@@ -10,114 +10,185 @@ on:
 
 jobs:
 
+  # =====================================================
+  # 1. FRONTEND - TEST, LINT Y BUILD
+  # =====================================================
+
   frontend:
-
     name: Frontend - Test, Lint & Build
-
     runs-on: ubuntu-latest
-
 
     steps:
 
       - name: Checkout
         uses: actions/checkout@v5
 
-
       - name: Setup Node
-
         uses: actions/setup-node@v5
-
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-
       - name: Install dependencies
-
         run: npm ci
 
-
       - name: Test
-
         run: npm test
-        continue-on-error: false
-
 
       - name: Lint
-
         run: npm run lint
 
-
       - name: Build
-
         run: npm run build
 
 
+  # =====================================================
+  # 2. BACKEND - TEST, LINT Y BUILD
+  # =====================================================
 
   backend:
-
-
     name: Backend - Test, Lint & Build
-
-
     runs-on: ubuntu-latest
 
-
     defaults:
-
       run:
-
         working-directory: ./backend
-
-
 
     steps:
 
-
       - name: Checkout
-
         uses: actions/checkout@v5
 
-
-
       - name: Setup Node
-
-
         uses: actions/setup-node@v5
-
-
         with:
-
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
+      - name: Install dependencies
+        run: npm ci
 
+      - name: Test
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+
+  # =====================================================
+  # 3. PRUEBAS UNITARIAS + COBERTURA
+  # =====================================================
+
+  coverage:
+    name: Pruebas unitarias y cobertura
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
+        run: npm ci
+
+      - name: Run coverage
+        run: npx vitest run --coverage
 
 
+  # =====================================================
+  # 4. PRUEBA E2E CON PLAYWRIGHT + POSTGRESQL
+  # =====================================================
+
+  e2e:
+    name: Pruebas E2E
+    runs-on: ubuntu-latest
+
+    services:
+
+      postgres:
+        image: postgres:16
+
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: taskmanager
+
+        ports:
+          - 5432:5432
+
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/taskmanager
+
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+
+      # -----------------------------
+      # FRONTEND
+      # -----------------------------
+
+      - name: Install frontend dependencies
         run: npm ci
 
 
+      # -----------------------------
+      # BACKEND
+      # -----------------------------
 
-      - name: Test
-
-
-        run: npm test
-        continue-on-error: false
-
-
-
-      - name: Lint
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
 
 
-        run: npm run lint
+      # -----------------------------
+      # PRISMA
+      # -----------------------------
+
+      - name: Generate Prisma Client
+        working-directory: ./backend
+        run: npx prisma generate
 
 
+      - name: Create database schema
+        working-directory: ./backend
+        run: npx prisma db push
 
-      - name: Build
+
+      # -----------------------------
+      # PLAYWRIGHT
+      # -----------------------------
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
 
 
-        run: npm run build
+      - name: Run E2E tests
+        run: npx playwright test
