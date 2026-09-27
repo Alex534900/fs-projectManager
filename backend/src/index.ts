@@ -34,33 +34,6 @@ app.use(express.json());
 
 
 
-type Task = {
-    id: number;
-    text: string;
-    completed: boolean;
-};
-
-
-// Este arreglo todavía se mantiene porque PUT aún no usa Prisma.
-const tasks: Task[] = [
-    {
-        id: 1,
-        text: "Estudiar Node.js",
-        completed: false
-    },
-    {
-        id: 2,
-        text: "Crear servidor Express",
-        completed: true
-    },
-    {
-        id: 3,
-        text: "Probar rutas del backend",
-        completed: false
-    }
-];
-
-
 
 // ======================================================
 // GET /
@@ -385,32 +358,22 @@ app.post("/tasks", async (req: any, res: any) => {
 
 // ======================================================
 // PUT /tasks/:id
-// Actualiza estado de tarea
+// Edita el texto de una tarea en PostgreSQL
 // ======================================================
 
-app.put("/tasks/:id", (req: any, res: any) => {
+app.put("/tasks/:id", async (req: any, res: any) => {
 
 
     const id =
         Number(req.params.id);
 
 
-
-    const task =
-        tasks.find(
-
-            (task) => task.id === id
-
-        );
+    if (Number.isNaN(id)) {
 
 
+        return res.status(400).json({
 
-    if (!task) {
-
-
-        return res.status(404).json({
-
-            message: "Task not found"
+            message: "Invalid task id"
 
         });
 
@@ -419,12 +382,102 @@ app.put("/tasks/:id", (req: any, res: any) => {
 
 
 
-    task.completed =
-        !task.completed;
+    const {
+        text
+    } = req.body || {};
+
+
+    if (
+        !text ||
+        text.trim() === ""
+    ) {
+
+
+        return res.status(400).json({
+
+            message: "Task text is required"
+
+        });
+
+
+    }
 
 
 
-    return res.json(task);
+    try {
+
+
+        const result =
+            await prisma.task.updateMany({
+
+                where: {
+
+                    id: id
+
+                },
+
+                data: {
+
+                    text: text.trim()
+
+                }
+
+            });
+
+
+
+        if (result.count === 0) {
+
+
+            return res.status(404).json({
+
+                message: "Task not found"
+
+            });
+
+
+        }
+
+
+
+        const updatedTask =
+            await prisma.task.findUnique({
+
+                where: {
+
+                    id: id
+
+                }
+
+            });
+
+
+        return res.json(updatedTask);
+
+
+
+    } catch (error) {
+
+
+        console.error(
+
+            "Error updating task:",
+
+            error
+
+        );
+
+
+
+        return res.status(500).json({
+
+            message:
+                "Error updating task"
+
+        });
+
+
+    }
 
 
 });

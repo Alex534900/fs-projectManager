@@ -9,6 +9,7 @@ type TaskListProps = {
     tasks: Task[];
     onDeleteTask: (id: number) => void;
     onToggleTask: (id: number) => void;
+    onEditTask: (id: number, text: string) => void;
 };
 function TaskList(props: TaskListProps) {
     if (props.tasks.length === 0) {
@@ -23,6 +24,7 @@ function TaskList(props: TaskListProps) {
                     task={task}
                     onDeleteTask={props.onDeleteTask}
                     onToggleTask={props.onToggleTask}
+                    onEditTask={props.onEditTask}
                 />
             ))}
         </ul>
