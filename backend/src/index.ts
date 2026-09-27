@@ -552,8 +552,6 @@ app.get("/health", (_req: any, res: any) => {
 // START SERVER
 // ======================================================
 
-throw new Error("fallo simulado laboratorio 3");
-
 app.listen(PORT, () => {
 
     console.log(

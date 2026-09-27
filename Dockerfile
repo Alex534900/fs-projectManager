@@ -14,6 +14,10 @@ RUN npm ci
 # Copiamos el frontend
 COPY . .
 
+# URL del backend, inyectada por Railway como build arg
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 # Generamos la versión de producción
 RUN npm run build
 
