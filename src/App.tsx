@@ -167,6 +167,61 @@ function App() {
 
 
     // ==================================================
+    // EDITAR TEXTO DE UNA TAREA
+    // ==================================================
+
+    const editTask = async (id: number, text: string) => {
+
+        try {
+
+            const response = await fetch(
+                `${API_URL}/tasks/${id}`,
+                {
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        text: text
+                    })
+                }
+            );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "No se pudo editar la tarea"
+                );
+
+            }
+
+
+            const updatedTask = await response.json();
+
+
+            setTasks((currentTasks) =>
+                currentTasks.map((task) =>
+                    task.id === id ? updatedTask : task
+                )
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Error al editar la tarea:",
+                error
+            );
+
+        }
+    };
+
+
+    // ==================================================
     // COMPLETAR / DESCOMPLETAR
     // Aún es solamente local.
     // Lo conectaremos después a PostgreSQL.
@@ -225,6 +280,7 @@ function App() {
                 tasks={tasks}
                 onDeleteTask={deleteTask}
                 onToggleTask={toggleTask}
+                onEditTask={editTask}
             />
 
             <Footer
