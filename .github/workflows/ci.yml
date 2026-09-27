@@ -310,7 +310,7 @@ jobs:
 
       - name: Deploy Railway Staging - Backend
         working-directory: ./backend
-        run: railway up --service backend --ci
+        run: railway up --service ravishing-amazement --ci
 
 
 
@@ -354,4 +354,4 @@ jobs:
 
       - name: Deploy Railway Production - Backend
         working-directory: ./backend
-        run: railway up --service backend --ci
+        run: railway up --service ravishing-amazement --ci
