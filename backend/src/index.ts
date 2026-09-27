@@ -8,7 +8,16 @@ const jwt = require("jsonwebtoken");
 const { PrismaClient } = require("@prisma/client");
 
 const app = express();
+
 const PORT = Number(process.env.PORT) || 3000;
+
+// ======================================================
+// VARIABLES SENSIBLES
+// ======================================================
+
+// JWT_SECRET ya NO está escrito directamente en el código.
+// Debe venir desde una variable de entorno.
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const prisma = new PrismaClient();
 
@@ -37,7 +46,9 @@ const tasks: Task[] = [
 // ======================================================
 
 app.get("/", (_req: any, res: any) => {
+
     res.send("Backend is working!");
+
 });
 
 
@@ -47,18 +58,27 @@ app.get("/", (_req: any, res: any) => {
 // ======================================================
 
 app.get("/tasks", async (_req: any, res: any) => {
-    try {
-        const tasksFromDatabase = await prisma.task.findMany();
 
-        res.json(tasksFromDatabase);
+    try {
+
+        const tasksFromDatabase =
+            await prisma.task.findMany();
+
+        return res.json(tasksFromDatabase);
 
     } catch (error) {
-        console.error("Error getting tasks:", error);
 
-        res.status(500).json({
+        console.error(
+            "Error getting tasks:",
+            error
+        );
+
+        return res.status(500).json({
             message: "Error getting tasks"
         });
+
     }
+
 });
 
 
@@ -70,6 +90,21 @@ app.post("/login", (req: any, res: any) => {
 
     const { email, password } = req.body || {};
 
+
+    // Verificamos que JWT_SECRET exista.
+    if (!JWT_SECRET) {
+
+        console.error(
+            "JWT_SECRET environment variable is not configured"
+        );
+
+        return res.status(500).json({
+            message: "Server configuration error"
+        });
+
+    }
+
+
     if (
         email === "admin@test.com" &&
         password === "123456"
@@ -79,21 +114,25 @@ app.post("/login", (req: any, res: any) => {
             {
                 email: email
             },
-            "secret_key",
+            JWT_SECRET,
             {
                 expiresIn: "1h"
             }
         );
 
+
         return res.json({
             message: "Login successful",
             token: token
         });
+
     }
+
 
     return res.status(401).json({
         message: "Invalid credentials"
     });
+
 });
 
 
@@ -103,24 +142,53 @@ app.post("/login", (req: any, res: any) => {
 
 app.get("/profile", (req: any, res: any) => {
 
-    const authHeader = req.headers.authorization;
+    const authHeader =
+        req.headers.authorization;
+
 
     if (!authHeader) {
+
         return res.status(401).json({
             message: "No token provided"
         });
+
     }
 
 
-    const token = authHeader.split(" ")[1];
+    // Verificamos nuevamente que la variable exista.
+    if (!JWT_SECRET) {
+
+        console.error(
+            "JWT_SECRET environment variable is not configured"
+        );
+
+        return res.status(500).json({
+            message: "Server configuration error"
+        });
+
+    }
+
+
+    const token =
+        authHeader.split(" ")[1];
+
+
+    if (!token) {
+
+        return res.status(401).json({
+            message: "Invalid authorization header"
+        });
+
+    }
 
 
     try {
 
         const decoded = jwt.verify(
             token,
-            "secret_key"
+            JWT_SECRET
         );
+
 
         return res.json({
             message: "Protected profile data",
@@ -132,7 +200,9 @@ app.get("/profile", (req: any, res: any) => {
         return res.status(401).json({
             message: "Invalid token"
         });
+
     }
+
 });
 
 
@@ -146,7 +216,10 @@ app.post("/tasks", async (req: any, res: any) => {
     const { text } = req.body || {};
 
 
-    if (!text || text.trim() === "") {
+    if (
+        !text ||
+        text.trim() === ""
+    ) {
 
         return res.status(400).json({
             message: "Task text is required"
@@ -157,17 +230,20 @@ app.post("/tasks", async (req: any, res: any) => {
 
     try {
 
-        const newTask = await prisma.task.create({
+        const newTask =
+            await prisma.task.create({
 
-            data: {
-                text: text.trim(),
-                completed: false
-            }
+                data: {
+                    text: text.trim(),
+                    completed: false
+                }
 
-        });
+            });
 
 
-        return res.status(201).json(newTask);
+        return res
+            .status(201)
+            .json(newTask);
 
     } catch (error) {
 
@@ -176,10 +252,13 @@ app.post("/tasks", async (req: any, res: any) => {
             error
         );
 
+
         return res.status(500).json({
             message: "Error creating task"
         });
+
     }
+
 });
 
 
@@ -191,12 +270,14 @@ app.post("/tasks", async (req: any, res: any) => {
 
 app.put("/tasks/:id", (req: any, res: any) => {
 
-    const id = Number(req.params.id);
+    const id =
+        Number(req.params.id);
 
 
-    const task = tasks.find(
-        (task) => task.id === id
-    );
+    const task =
+        tasks.find(
+            (task) => task.id === id
+        );
 
 
     if (!task) {
@@ -208,70 +289,81 @@ app.put("/tasks/:id", (req: any, res: any) => {
     }
 
 
-    task.completed = !task.completed;
+    task.completed =
+        !task.completed;
 
 
     return res.json(task);
+
 });
 
 
 // ======================================================
 // DELETE /tasks/:id
-// AHORA elimina realmente de PostgreSQL con Prisma
+// Elimina realmente de PostgreSQL con Prisma
 // ======================================================
 
-app.delete("/tasks/:id", async (req: any, res: any) => {
+app.delete(
+    "/tasks/:id",
+    async (req: any, res: any) => {
 
-    const id = Number(req.params.id);
-
-
-    if (Number.isNaN(id)) {
-
-        return res.status(400).json({
-            message: "Invalid task id"
-        });
-
-    }
+        const id =
+            Number(req.params.id);
 
 
-    try {
+        if (Number.isNaN(id)) {
 
-        const result = await prisma.task.deleteMany({
-
-            where: {
-                id: id
-            }
-
-        });
-
-
-        if (result.count === 0) {
-
-            return res.status(404).json({
-                message: "Task not found"
+            return res.status(400).json({
+                message: "Invalid task id"
             });
 
         }
 
 
-        return res.status(200).json({
-            message: "Task deleted successfully"
-        });
+        try {
+
+            const result =
+                await prisma.task.deleteMany({
+
+                    where: {
+                        id: id
+                    }
+
+                });
 
 
-    } catch (error) {
+            if (result.count === 0) {
 
-        console.error(
-            "Error deleting task:",
-            error
-        );
+                return res.status(404).json({
+                    message: "Task not found"
+                });
+
+            }
 
 
-        return res.status(500).json({
-            message: "Error deleting task"
-        });
+            return res.status(200).json({
+                message:
+                    "Task deleted successfully"
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Error deleting task:",
+                error
+            );
+
+
+            return res.status(500).json({
+                message:
+                    "Error deleting task"
+            });
+
+        }
+
     }
-});
+);
 
 
 // ======================================================
