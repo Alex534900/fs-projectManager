@@ -13,6 +13,9 @@ type Task = {
 };
 
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+
 function App() {
 
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -29,7 +32,7 @@ function App() {
             try {
 
                 const response = await fetch(
-                    "http://localhost:3000/tasks"
+                    `${API_URL}/tasks`
                 );
 
 
@@ -70,7 +73,7 @@ function App() {
         try {
 
             const response = await fetch(
-                "http://localhost:3000/tasks",
+                `${API_URL}/tasks`,
                 {
                     method: "POST",
 
@@ -125,7 +128,7 @@ function App() {
         try {
 
             const response = await fetch(
-                `http://localhost:3000/tasks/${id}`,
+                `${API_URL}/tasks/${id}`,
                 {
                     method: "DELETE"
                 }

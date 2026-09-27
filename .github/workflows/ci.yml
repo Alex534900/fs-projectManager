@@ -305,8 +305,12 @@ jobs:
         run: npm install -g @railway/cli
 
 
-      - name: Deploy Railway Staging
+      - name: Deploy Railway Staging - Frontend
         run: railway up --service fs-projectManager --ci
+
+      - name: Deploy Railway Staging - Backend
+        working-directory: ./backend
+        run: railway up --service backend --ci
 
 
 
@@ -345,5 +349,9 @@ jobs:
         run: npm install -g @railway/cli
 
 
-      - name: Deploy Railway Production
+      - name: Deploy Railway Production - Frontend
         run: railway up --service fs-projectManager --ci
+
+      - name: Deploy Railway Production - Backend
+        working-directory: ./backend
+        run: railway up --service backend --ci
