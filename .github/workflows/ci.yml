@@ -28,12 +28,10 @@ jobs:
     steps:
 
       - name: Checkout
-
         uses: actions/checkout@v5
 
 
       - name: Setup Node
-
         uses: actions/setup-node@v5
 
         with:
@@ -46,24 +44,19 @@ jobs:
 
 
       - name: Install dependencies
-
         run: npm ci
 
 
       - name: Test
-
         run: npm test
 
 
       - name: Lint
-
         run: npm run lint
 
 
       - name: Build
-
         run: npm run build
-
 
 
 
@@ -137,7 +130,6 @@ jobs:
 
 
 
-
   # =====================================================
   # 3. PRUEBAS UNITARIAS + COBERTURA
   # =====================================================
@@ -182,7 +174,6 @@ jobs:
 
 
 
-
   # =====================================================
   # 4. PRUEBA E2E CON PLAYWRIGHT + POSTGRESQL
   # =====================================================
@@ -195,6 +186,7 @@ jobs:
 
 
     services:
+
 
       postgres:
 
@@ -299,10 +291,8 @@ jobs:
 
 
 
-
   # =====================================================
-  # 5. LABORATORIO 2
-  # MIGRACIONES PRISMA EN PIPELINE
+  # 5. MIGRACIONES PRISMA EN PIPELINE
   # =====================================================
 
   migraciones:
@@ -314,9 +304,10 @@ jobs:
 
     services:
 
+
       postgres:
 
-        image: postgres:16
+        image: postgres:16-alpine
 
 
         env:
@@ -397,7 +388,6 @@ jobs:
 
 
 
-
   # =====================================================
   # 6. DEPLOY STAGING RAILWAY
   # =====================================================
@@ -422,11 +412,7 @@ jobs:
       - migraciones
 
 
-    if:
-
-      github.event_name == 'push' &&
-
-      github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
 
     steps:
