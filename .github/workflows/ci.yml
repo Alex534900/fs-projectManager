@@ -7,6 +7,12 @@ on:
   pull_request:
     branches: [main]
 
+  workflow_dispatch:
+    inputs:
+      confirmacion:
+        description: "Escribe DEPLOY para confirmar el despliegue a produccion"
+        required: true
+
 
 jobs:
 
@@ -26,7 +32,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
@@ -60,6 +66,7 @@ jobs:
         working-directory: ./backend
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v5
 
@@ -67,7 +74,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
@@ -83,15 +90,18 @@ jobs:
         run: npm run build
 
 
+
   # =====================================================
   # 3. PRUEBAS UNITARIAS + COBERTURA
   # =====================================================
 
   coverage:
+
     name: Pruebas unitarias y cobertura
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v5
 
@@ -99,7 +109,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
@@ -109,16 +119,21 @@ jobs:
         run: npx vitest run --coverage
 
 
+
   # =====================================================
   # 4. PRUEBA E2E CON PLAYWRIGHT + POSTGRESQL
   # =====================================================
 
   e2e:
+
     name: Pruebas E2E
     runs-on: ubuntu-latest
 
+
     services:
+
       postgres:
+
         image: postgres:15
 
         env:
@@ -129,129 +144,206 @@ jobs:
         ports:
           - 5432:5432
 
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-          --health-start-period=30s
 
     env:
+
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/taskmanager
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       PORT: 3000
 
+
     steps:
+
       - name: Checkout
         uses: actions/checkout@v5
+
 
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
           node-version: '20'
 
+
       - name: Install frontend dependencies
         run: npm ci
+
 
       - name: Install backend dependencies
         working-directory: ./backend
         run: npm ci
 
+
       - name: Generate Prisma Client
         working-directory: ./backend
         run: npx prisma generate
+
 
       - name: Create database schema
         working-directory: ./backend
         run: npx prisma db push
 
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
 
       - name: Run E2E tests
         run: npx playwright test
 
 
+
   # =====================================================
-  # 5. MIGRACIONES PRISMA EN PIPELINE
+  # 5. MIGRACIONES PRISMA
   # =====================================================
 
   migraciones:
+
     name: Migraciones Prisma
     runs-on: ubuntu-latest
 
+
     services:
+
       postgres:
+
         image: postgres:16
 
         env:
+
           POSTGRES_USER: testuser
           POSTGRES_PASSWORD: testpass
           POSTGRES_DB: testdb
 
+
         ports:
+
           - 5432:5432
 
-        options: >-
-          --health-cmd="pg_isready -U testuser -d testdb"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=5
+
 
     env:
+
       DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
 
+
     defaults:
+
       run:
+
         working-directory: ./backend
 
+
     steps:
+
+
       - name: Checkout
         uses: actions/checkout@v5
 
+
       - name: Setup Node
         uses: actions/setup-node@v5
+
         with:
+
           node-version: '20'
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: backend/package-lock.json
+
 
       - name: Install dependencies
         run: npm ci
 
+
       - name: Generate Prisma Client
         run: npx prisma generate
+
 
       - name: Apply Prisma migrations
         run: npx prisma migrate deploy
 
 
+
+
   # =====================================================
-  # 6. DEPLOY STAGING RAILWAY
+  # 6. DEPLOY STAGING AUTOMATICO
   # =====================================================
+
 
   deploy-staging:
+
+
     name: Deploy Staging Railway
+
     runs-on: ubuntu-latest
 
+
     needs:
+
       - frontend
       - backend
       - coverage
       - e2e
       - migraciones
 
+
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
+
     env:
+
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
+
     steps:
+
+
       - name: Checkout
         uses: actions/checkout@v5
+
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Deploy Railway
+
+      - name: Deploy Railway Staging
+        run: railway up --service fs-projectManager --ci
+
+
+
+
+
+  # =====================================================
+  # 7. DEPLOY PRODUCCION MANUAL
+  # =====================================================
+
+
+  deploy-produccion:
+
+
+    name: Deploy Producción Manual
+
+    runs-on: ubuntu-latest
+
+
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirmacion == 'DEPLOY'
+
+
+    env:
+
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+
+
+    steps:
+
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+
+      - name: Deploy Railway Production
         run: railway up --service fs-projectManager --ci
