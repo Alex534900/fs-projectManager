@@ -16,13 +16,17 @@ jobs:
   # =====================================================
 
   frontend:
+
     name: Frontend - Test, Lint & Build
+
     runs-on: ubuntu-latest
+
 
     steps:
 
       - name: Checkout
         uses: actions/checkout@v5
+
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -31,17 +35,22 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
+
       - name: Install dependencies
         run: npm ci
+
 
       - name: Test
         run: npm test
 
+
       - name: Lint
         run: npm run lint
 
+
       - name: Build
         run: npm run build
+
 
 
 
@@ -50,18 +59,23 @@ jobs:
   # =====================================================
 
   backend:
+
     name: Backend - Test, Lint & Build
+
     runs-on: ubuntu-latest
 
 
     env:
+
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       PORT: 3000
 
 
     defaults:
+
       run:
+
         working-directory: ./backend
 
 
@@ -75,8 +89,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
+
           node-version: '20'
+
           cache: 'npm'
+
           cache-dependency-path: backend/package-lock.json
 
 
@@ -103,7 +120,9 @@ jobs:
   # =====================================================
 
   coverage:
+
     name: Pruebas unitarias y cobertura
+
     runs-on: ubuntu-latest
 
 
@@ -116,9 +135,13 @@ jobs:
 
       - name: Setup Node
         uses: actions/setup-node@v5
+
         with:
+
           node-version: '20'
+
           cache: 'npm'
+
           cache-dependency-path: package-lock.json
 
 
@@ -137,21 +160,26 @@ jobs:
   # =====================================================
 
   e2e:
+
     name: Pruebas E2E
+
     runs-on: ubuntu-latest
+
 
 
     services:
 
-
       postgres:
+
         image: postgres:16
 
 
         env:
 
           POSTGRES_USER: postgres
+
           POSTGRES_PASSWORD: postgres
+
           POSTGRES_DB: taskmanager
 
 
@@ -161,9 +189,13 @@ jobs:
 
 
         options: >-
+
           --health-cmd="pg_isready -U postgres"
+
           --health-interval=10s
+
           --health-timeout=5s
+
           --health-retries=5
 
 
@@ -188,6 +220,7 @@ jobs:
 
       - name: Setup Node
         uses: actions/setup-node@v5
+
         with:
 
           node-version: '20'
@@ -201,18 +234,21 @@ jobs:
 
       - name: Install backend dependencies
         working-directory: ./backend
+
         run: npm ci
 
 
 
       - name: Generate Prisma Client
         working-directory: ./backend
+
         run: npx prisma generate
 
 
 
       - name: Create database schema
         working-directory: ./backend
+
         run: npx prisma db push
 
 
@@ -230,14 +266,15 @@ jobs:
 
 
   # =====================================================
-  # 5. LABORATORIO 2
-  # MIGRACIONES PRISMA EN PIPELINE
+  # 5. MIGRACIONES PRISMA EN PIPELINE
   # =====================================================
-
 
   migraciones:
 
+
     name: Migraciones Prisma
+
+
     runs-on: ubuntu-latest
 
 
@@ -247,18 +284,24 @@ jobs:
 
       postgres:
 
+
         image: postgres:16-alpine
+
 
 
         env:
 
+
           POSTGRES_USER: testuser
+
           POSTGRES_PASSWORD: testpass
+
           POSTGRES_DB: testdb
 
 
 
         ports:
+
 
           - 5432:5432
 
@@ -266,15 +309,19 @@ jobs:
 
         options: >-
 
+
           --health-cmd="pg_isready -U testuser -d testdb"
+
           --health-interval=5s
+
           --health-timeout=5s
+
           --health-retries=5
 
 
 
-
     env:
+
 
       DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
 
@@ -282,10 +329,11 @@ jobs:
 
     defaults:
 
+
       run:
 
-        working-directory: ./backend
 
+        working-directory: ./backend
 
 
 
@@ -294,11 +342,13 @@ jobs:
 
 
       - name: Checkout
+
         uses: actions/checkout@v5
 
 
 
       - name: Setup Node
+
         uses: actions/setup-node@v5
 
         with:
@@ -312,54 +362,92 @@ jobs:
 
 
       - name: Install dependencies
+
         run: npm ci
 
 
 
       - name: Generate Prisma Client
+
         run: npx prisma generate
 
 
 
       - name: Apply Prisma migrations
+
         run: npx prisma migrate deploy
+
+
+
+
 
   # =====================================================
   # 6. DEPLOY STAGING RAILWAY
   # =====================================================
 
+
   deploy-staging:
+
 
     name: Deploy Staging Railway
 
+
     runs-on: ubuntu-latest
 
+
+
     needs:
+
       - frontend
+
       - backend
+
       - coverage
+
       - e2e
+
       - migraciones
 
 
+
     if:
+
       github.event_name == 'push' &&
+
       github.ref == 'refs/heads/main'
+
 
 
     steps:
 
 
+
       - name: Checkout
+
         uses: actions/checkout@v5
 
 
+
       - name: Install Railway CLI
+
         run: npm install -g @railway/cli
 
 
+
+      - name: Verify Railway Token
+
+        run: railway whoami
+
+        env:
+
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+
+
       - name: Deploy to Railway
+
         run: railway up --service fs-projectManager
 
         env:
+
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
