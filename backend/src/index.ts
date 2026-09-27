@@ -19,12 +19,12 @@ const PORT = Number(process.env.PORT) || 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // ======================================================
-// FALLO SIMULADO
+// FALLO SIMULADO -- SOLUCIONADO
 // ======================================================
 const prisma = new PrismaClient({
     datasources: {
         db: {
-            url: process.env.DATABASE_URLL
+            url: process.env.DATABASE_URL
         }
     }
 });
