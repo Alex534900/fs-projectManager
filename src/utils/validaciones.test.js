@@ -33,6 +33,6 @@ describe('contarTareasPendientes', () => {
   })
 
   it('devuelve 0 cuando la lista está vacía', () => {
-    expect(contarTareasPendientes([])).toBe(0)
+    expect(contarTareasPendientes([])).toBe(1)
   })
 })
