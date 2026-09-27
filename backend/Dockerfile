@@ -40,4 +40,6 @@ RUN DATABASE_URL="postgresql://docker:docker@localhost:5432/docker" npx prisma g
 
 EXPOSE 3000
 
-CMD ["node", "dist/src/index.js"]
+# Aplica las migraciones pendientes contra la base de datos real
+# (usa el DATABASE_URL de runtime inyectado por Railway) y luego arranca.
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/index.js"]
