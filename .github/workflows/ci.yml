@@ -176,7 +176,7 @@ jobs:
 
       postgres:
 
-        image: postgres:16
+        image: postgres:15
 
 
         env:
@@ -256,7 +256,7 @@ jobs:
       - name: Run E2E tests
         run: npx playwright test
 
-          # =====================================================
+  # =====================================================
   # 5. MIGRACIONES PRISMA EN PIPELINE
   # =====================================================
 
@@ -272,7 +272,7 @@ jobs:
 
       postgres:
 
-        image: postgres:16
+        image: postgres:15
 
 
         env:
