@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
+    "rootDir": ".",
     "outDir": "./dist",
 
     "module": "commonjs",
@@ -20,13 +20,14 @@
   },
 
   "include": [
-    "src"
-, "vitest.config.ts"  ],
+    "src",
+    "prisma",
+    "vitest.config.ts"
+  ],
 
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.test.ts",
-    "vitest.config.ts"
+    "**/*.test.ts"
   ]
 }
