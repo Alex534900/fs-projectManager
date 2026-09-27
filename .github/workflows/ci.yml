@@ -89,12 +89,10 @@ jobs:
 
 
       - name: Checkout
-
         uses: actions/checkout@v5
 
 
       - name: Setup Node
-
         uses: actions/setup-node@v5
 
         with:
@@ -107,22 +105,18 @@ jobs:
 
 
       - name: Install dependencies
-
         run: npm ci
 
 
       - name: Test
-
         run: npm test
 
 
       - name: Lint
-
         run: npm run lint
 
 
       - name: Build
-
         run: npm run build
 
 
@@ -143,12 +137,10 @@ jobs:
 
 
       - name: Checkout
-
         uses: actions/checkout@v5
 
 
       - name: Setup Node
-
         uses: actions/setup-node@v5
 
         with:
@@ -161,12 +153,10 @@ jobs:
 
 
       - name: Install dependencies
-
         run: npm ci
 
 
       - name: Run coverage
-
         run: npx vitest run --coverage
 
 
@@ -184,7 +174,6 @@ jobs:
 
 
     services:
-
 
       postgres:
 
@@ -231,13 +220,10 @@ jobs:
 
 
       - name: Checkout
-
         uses: actions/checkout@v5
 
 
-
       - name: Setup Node
-
         uses: actions/setup-node@v5
 
         with:
@@ -245,45 +231,30 @@ jobs:
           node-version: '20'
 
 
-
       - name: Install frontend dependencies
-
         run: npm ci
-
 
 
       - name: Install backend dependencies
-
         working-directory: ./backend
-
         run: npm ci
 
 
-
       - name: Generate Prisma Client
-
         working-directory: ./backend
-
         run: npx prisma generate
 
 
-
       - name: Create database schema
-
         working-directory: ./backend
-
         run: npx prisma db push
 
 
-
       - name: Install Chromium
-
         run: npx playwright install --with-deps chromium
 
 
-
       - name: Run E2E tests
-
         run: npx playwright test
 
 
@@ -295,12 +266,9 @@ jobs:
 
   migraciones:
 
-
     name: Migraciones Prisma
 
-
     runs-on: ubuntu-latest
-
 
 
     services:
@@ -310,7 +278,6 @@ jobs:
 
 
         image: postgres:16-alpine
-
 
 
         env:
@@ -323,12 +290,10 @@ jobs:
           POSTGRES_DB: testdb
 
 
-
         ports:
 
 
-          - 5432:5432
-
+          - 5433:5432
 
 
         options: >-
@@ -344,11 +309,10 @@ jobs:
 
 
 
-
     env:
 
 
-      DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
+      DATABASE_URL: postgresql://testuser:testpass@localhost:5433/testdb
 
 
 
@@ -362,15 +326,12 @@ jobs:
 
 
 
-
     steps:
-
 
 
       - name: Checkout
 
         uses: actions/checkout@v5
-
 
 
       - name: Setup Node
@@ -386,17 +347,14 @@ jobs:
           cache-dependency-path: backend/package-lock.json
 
 
-
       - name: Install dependencies
 
         run: npm ci
 
 
-
       - name: Generate Prisma Client
 
         run: npx prisma generate
-
 
 
       - name: Apply Prisma migrations
