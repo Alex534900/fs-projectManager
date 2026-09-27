@@ -165,90 +165,59 @@ jobs:
   # =====================================================
 
   e2e:
-
     name: Pruebas E2E
-
     runs-on: ubuntu-latest
 
-
     services:
-
-
       postgres:
-
         image: postgres:15
 
-
         env:
-
           POSTGRES_USER: postgres
-
           POSTGRES_PASSWORD: postgres
-
           POSTGRES_DB: taskmanager
 
-
         ports:
-
           - 5432:5432
 
-
-      options: >-
-        --health-cmd="pg_isready -U postgres"
-        --health-interval=10s
-        --health-timeout=5s
-        --health-retries=10
-        --health-start-period=30s
-
-
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+          --health-start-period=30s
 
     env:
-
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/taskmanager
-
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
-
       PORT: 3000
 
-
-
     steps:
-
-
       - name: Checkout
         uses: actions/checkout@v5
 
-
       - name: Setup Node
         uses: actions/setup-node@v5
-
         with:
-
           node-version: '20'
-
 
       - name: Install frontend dependencies
         run: npm ci
-
 
       - name: Install backend dependencies
         working-directory: ./backend
         run: npm ci
 
-
       - name: Generate Prisma Client
         working-directory: ./backend
         run: npx prisma generate
-
 
       - name: Create database schema
         working-directory: ./backend
         run: npx prisma db push
 
-
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-
 
       - name: Run E2E tests
         run: npx playwright test
