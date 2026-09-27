@@ -31,6 +31,7 @@ jobs:
 
       - name: Setup Node
         uses: actions/setup-node@v5
+
         with:
 
           node-version: '20'
@@ -54,7 +55,6 @@ jobs:
 
       - name: Build
         run: npm run build
-
 
 
 
@@ -121,7 +121,6 @@ jobs:
 
 
 
-
   # =====================================================
   # 3. PRUEBAS UNITARIAS + COBERTURA
   # =====================================================
@@ -161,7 +160,6 @@ jobs:
 
 
 
-
   # =====================================================
   # 4. PRUEBA E2E CON PLAYWRIGHT + POSTGRESQL
   # =====================================================
@@ -175,9 +173,10 @@ jobs:
 
     services:
 
+
       postgres:
 
-        image: postgres:16-alpine
+        image: postgres:16
 
 
         env:
@@ -202,7 +201,7 @@ jobs:
 
           --health-timeout=5s
 
-          --health-retries=10
+          --health-retries=5
 
 
 
@@ -257,10 +256,7 @@ jobs:
       - name: Run E2E tests
         run: npx playwright test
 
-
-
-
-  # =====================================================
+          # =====================================================
   # 5. MIGRACIONES PRISMA EN PIPELINE
   # =====================================================
 
@@ -276,12 +272,10 @@ jobs:
 
       postgres:
 
-
-        image: postgres:16-alpine
+        image: postgres:16
 
 
         env:
-
 
           POSTGRES_USER: testuser
 
@@ -292,12 +286,10 @@ jobs:
 
         ports:
 
-
-          - 5433:5432
+          - 5432:5432
 
 
         options: >-
-
 
           --health-cmd="pg_isready -U testuser -d testdb"
 
@@ -305,22 +297,19 @@ jobs:
 
           --health-timeout=5s
 
-          --health-retries=10
+          --health-retries=5
 
 
 
     env:
 
-
-      DATABASE_URL: postgresql://testuser:testpass@localhost:5433/testdb
+      DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
 
 
 
     defaults:
 
-
       run:
-
 
         working-directory: ./backend
 
@@ -368,7 +357,6 @@ jobs:
   # 6. DEPLOY STAGING RAILWAY
   # =====================================================
 
-
   deploy-staging:
 
 
@@ -401,11 +389,9 @@ jobs:
     steps:
 
 
-
       - name: Checkout
 
         uses: actions/checkout@v5
-
 
 
       - name: Install Railway CLI
@@ -413,17 +399,14 @@ jobs:
         run: npm install -g @railway/cli
 
 
-
       - name: Login Railway
 
         run: railway login --token ${{ secrets.RAILWAY_TOKEN }}
 
 
-
       - name: Link Railway project
 
         run: railway link --project fd9370a3-392f-4a96-81e0-2ed7afae6a0f --environment production
-
 
 
       - name: Deploy Railway
