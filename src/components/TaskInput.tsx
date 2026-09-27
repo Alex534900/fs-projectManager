@@ -21,6 +21,7 @@ function TaskInput(props: TaskInputProps) {
             <input
                 className="task-input"
                 type="text"
+                aria-label="Nueva tarea"
                 placeholder="Escribe una nueva tarea"
                 value={text}
                 onChange={(event) => setText(event.target.value)}

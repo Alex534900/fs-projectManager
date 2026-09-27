@@ -19,3 +19,13 @@ dist-ssr
 .vscode/*
 .idea
 .DS_Store
+
+# Cobertura de pruebas
+coverage/
+
+# Playwright y resultados de pruebas
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+playwright/.auth/

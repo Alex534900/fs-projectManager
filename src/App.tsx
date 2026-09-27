@@ -1,13 +1,9 @@
-
 import { useEffect, useState } from "react";
-//import { useState } from "react";
-//import "./App.css";
+
 import Header from "./components/Header";
 import TaskInput from "./components/TaskInput";
 import TaskList from "./components/TaskList";
 import Footer from "./components/Footer";
-
-
 
 
 type Task = {
@@ -15,71 +11,228 @@ type Task = {
     text: string;
     completed: boolean;
 };
+
+
 function App() {
-    /*const [tasks, setTasks] = useState<Task[]>([
-        { id: 1, text: "Estudiar React", completed: false },
-        { id: 2, text: "Practicar TypeScript", completed: false },
-        { id: 3, text: "Entender estado", completed: true }
-    ]);*/
+
     const [tasks, setTasks] = useState<Task[]>([]);
-    // NEW CHANGE: This loads tasks from the backend when React starts.
+
+
+    // ==================================================
+    // CARGAR TAREAS DESDE EL BACKEND
+    // ==================================================
+
     useEffect(() => {
+
         const fetchTasks = async () => {
-            const response = await fetch("http://localhost:3000/tasks");
-            const data = await response.json();
-            setTasks(data);
+
+            try {
+
+                const response = await fetch(
+                    "http://localhost:3000/tasks"
+                );
+
+
+                if (!response.ok) {
+                    throw new Error(
+                        "No se pudieron cargar las tareas"
+                    );
+                }
+
+
+                const data = await response.json();
+
+                setTasks(data);
+
+
+            } catch (error) {
+
+                console.error(
+                    "Error al cargar las tareas:",
+                    error
+                );
+
+            }
         };
+
+
         fetchTasks();
+
     }, []);
-// NEW CHANGE: addTask now sends the new task to the backend using POST.
+
+
+    // ==================================================
+    // CREAR TAREA
+    // ==================================================
+
     const addTask = async (text: string) => {
-        const response = await fetch("http://localhost:3000/tasks", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                text: text
-            })
-        });
-        const newTask = await response.json();
-        setTasks([...tasks, newTask]);
+
+        try {
+
+            const response = await fetch(
+                "http://localhost:3000/tasks",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        text: text
+                    })
+                }
+            );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "No se pudo crear la tarea"
+                );
+
+            }
+
+
+            const newTask = await response.json();
+
+
+            setTasks((currentTasks) => [
+                ...currentTasks,
+                newTask
+            ]);
+
+
+        } catch (error) {
+
+            console.error(
+                "Error al crear la tarea:",
+                error
+            );
+
+        }
     };
 
-    
-    const deleteTask = (id: number) => {
-        const updatedTasks = tasks.filter((task) => task.id !== id);
-        setTasks(updatedTasks);
+
+    // ==================================================
+    // ELIMINAR TAREA
+    // Ahora también se elimina de PostgreSQL
+    // ==================================================
+
+    const deleteTask = async (id: number) => {
+
+        try {
+
+            const response = await fetch(
+                `http://localhost:3000/tasks/${id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "No se pudo eliminar la tarea"
+                );
+
+            }
+
+
+            // Solamente quitamos la tarea de React
+            // después de que el servidor confirmó
+            // que fue eliminada correctamente.
+
+            setTasks((currentTasks) =>
+                currentTasks.filter(
+                    (task) => task.id !== id
+                )
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Error al eliminar la tarea:",
+                error
+            );
+
+        }
     };
+
+
+    // ==================================================
+    // COMPLETAR / DESCOMPLETAR
+    // Aún es solamente local.
+    // Lo conectaremos después a PostgreSQL.
+    // ==================================================
+
     const toggleTask = (id: number) => {
+
         const updatedTasks = tasks.map((task) => {
+
             if (task.id === id) {
+
                 return {
                     ...task,
                     completed: !task.completed
                 };
+
             }
+
             return task;
         });
+
+
         setTasks(updatedTasks);
     };
-    const completedTasks = tasks.filter((task) => task.completed).length;
-    const pendingTasks = tasks.length - completedTasks;
+
+
+    // ==================================================
+    // CONTADORES
+    // ==================================================
+
+    const completedTasks =
+        tasks.filter(
+            (task) => task.completed
+        ).length;
+
+
+    const pendingTasks =
+        tasks.length - completedTasks;
+
+
+    // ==================================================
+    // INTERFAZ
+    // ==================================================
+
     return (
+
         <div className="app-container">
+
             <Header />
-            <TaskInput onAddTask={addTask} />
+
+            <TaskInput
+                onAddTask={addTask}
+            />
+
             <TaskList
                 tasks={tasks}
                 onDeleteTask={deleteTask}
                 onToggleTask={toggleTask}
             />
+
             <Footer
                 total={tasks.length}
                 completed={completedTasks}
                 pending={pendingTasks}
             />
+
         </div>
     );
 }
+
+
 export default App;
