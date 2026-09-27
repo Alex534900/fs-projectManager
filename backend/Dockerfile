@@ -40,4 +40,4 @@ RUN DATABASE_URL="postgresql://docker:docker@localhost:5432/docker" npx prisma g
 
 EXPOSE 3000
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/src/index.js"]
